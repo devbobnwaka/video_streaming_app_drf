@@ -1,5 +1,12 @@
 asgiref==3.6.0
+certifi==2022.12.7
+cloudinary==1.32.0
 Django==4.1.7
-django-restframework==0.0.1
+django-dotenv==1.4.2
+djangorestframework==3.14.0
+psycopg2==2.9.5
+pytz==2023.2
+six==1.16.0
 sqlparse==0.4.3
 tzdata==2022.7
+urllib3==1.26.15
