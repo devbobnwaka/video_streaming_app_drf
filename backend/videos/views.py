@@ -1,8 +1,12 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, mixins, response, authentication
 # from rest_framework_simplejwt.authentication import JWTAuthentication
-from .serializers import VideoSerializer, CommentSerializer
-from .models import Video, Comment
+from .serializers import VideoSerializer, CommentSerializer, LikeSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Video, Comment, Like
+from .mixins import MultipleFieldLookupMixin
 
 # Create your views here.
 class VideoAPIView( mixins.ListModelMixin, 
@@ -34,6 +38,7 @@ class VideoAPIView( mixins.ListModelMixin,
 
 class VideoAuthenticatedAPIView( mixins.CreateModelMixin,
                         mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin,
                         generics.GenericAPIView):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -89,3 +94,43 @@ class CommentAuthenticatedAPIView( mixins.CreateModelMixin,
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
+
+
+class LikeAPIView( mixins.ListModelMixin, 
+                    generics.GenericAPIView):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super().get_queryset()
+        # modify the queryset as needed
+        video_slug = self.kwargs.get('video_slug')
+        if video_slug:
+            video_instance = Video.objects.get(slug=video_slug)
+        return queryset.filter(video=video_instance)
+
+
+class LikeAuthenticatedAPIView(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None, *args, **kwargs, ):
+        video_slug = self.kwargs.get('video_slug')
+        if video_slug:
+            serializer = LikeSerializer(data=request.data)
+            if serializer.is_valid():
+                video_instance = Video.objects.get(slug=video_slug)
+                like_qs = Like.objects.filter(video=video_instance, user=request.user)
+                if like_qs.exists():
+                    like_qs.first().delete()
+                    return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+                else:
+                    serializer.save(user=request.user, video=video_instance)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "video_slug does not exist"}, status=status.HTTP_400_BAD_REQUEST)

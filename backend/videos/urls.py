@@ -9,6 +9,8 @@ urlpatterns = [
     path('comment/', views.CommentAPIView.as_view(), name='comment-list'),
     path('comment/<int:pk>/', views.CommentAPIView.as_view(), name='comment-detail'),
     #video comments
-    path('comment-auth/<slug:video_slug>/', views.CommentAuthenticatedAPIView.as_view(), name='video-auth'),
-
+    path('comment-auth/<slug:video_slug>/', views.CommentAuthenticatedAPIView.as_view(), name='comment-auth'),
+    #video likes
+    path('like-auth/<slug:video_slug>/', views.LikeAPIView.as_view(), name='like-list'),
+    path('like-auth/<slug:video_slug>/', views.LikeAuthenticatedAPIView.as_view(), name='like-auth-post'),
 ]
