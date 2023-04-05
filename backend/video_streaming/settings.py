@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #installed apps
+    'drf_yasg',
     'rest_framework',
     'cloudinary',
     #my apps
